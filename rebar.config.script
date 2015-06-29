@@ -15,9 +15,26 @@ X64 = case Arch of
     _              -> ""
     end,
 
+Include = "-I " ++ filename:join([code:root_dir(), "lib", "erl_interface-*", "include"]),
+
 % Replace configuration options read from rebar.config with those dynamically set below
 lists:keymerge(1,
     lists:keysort(1, [
+        {pre_hooks, [{"linux",   compile, "make -C c_src CXXFLAGS=\"$CXXFLAGS -O0 -DHAVE_SETRESUID -DHAVE_PTRACE "
+                      ++ LinCXX ++ " " ++ Include ++ "\" "
+                      ++ "LDFLAGS=\"$LDFLAGS " ++ LinLD ++ "\" "
+                      ++ "CC=g++ CXX=g++"},
+                     {"darwin",  compile, "make -C c_src CXXFLAGS=\"$CXXFLAGS -O0 -DHAVE_SETREUID  -DHAVE_PTRACE "
+                      ++ X64 ++ " " ++ Include ++ "\" "
+                      ++ "LDFLAGS=\"$LDFLAGS " ++ X64 ++ "\" "
+                      ++ "CC=g++ CXX=g++"},
+                     {"solaris", compile, "make -C c_src CXXFLAGS=\"$CXXFLAGS -O0 -DHAVE_SETREUID  -DHAVE_PTRACE "
+                      ++ X64 ++ " " ++ Include ++ "\" "
+                      ++ "LDFLAGS=\"$LDFLAGS -lrt " ++ X64 ++ "\" "
+                      ++ "CC=g++ CXX=g++"}
+                    ]},
+        {post_hooks, [ {"(linux|darwin|solaris)", clean, "make -C c_src clean"} ]},
+
         {port_env,  [{"solaris", "CXXFLAGS", "$CXXFLAGS -DHAVE_SETREUID -DHAVE_PTRACE" ++ X64},
                      {"solaris", "LDFLAGS",  "$LDFLAGS -lrt" ++ X64},
 

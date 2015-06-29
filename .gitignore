@@ -5,3 +5,5 @@
 /priv
 /ebin
 .rebar/*
+/.rebar3/
+_*
